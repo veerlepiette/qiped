@@ -12953,3 +12953,67 @@ set A_PEZO01.neurobasisPCA2;
 if indsettingfinal=. then indsettingfinal=0;  
 
 run; 
+
+/* Indicator palliative status */
+
+proc sql;  
+
+Create table work.NEUROSTATUS as   
+
+select ss00010,  
+
+ss00015, 
+
+(case  
+
+WHEN ss00020 = 740213 then 1 
+
+else 0 
+
+end) as status30d 
+
+from work.ssetsneuro;  
+
+run;  
+
+ 
+
+proc sql; 
+
+Create table work.NEUROSTATUS2 as   
+
+select distinct ss00010 as pp0010, max(status30d) as indpallstat 
+
+from work.NEUROSTATUS 
+
+group by ss00010; 
+
+proc sql; 
+
+CREATE TABLE work.pcastatus AS 
+
+SELECT distinct pp0010, indpallstat 
+
+FROM work.NEUROSTATUS2 
+
+WHERE indpallstat = 1; 
+
+ 
+
+data A_PEZO01.neurobasisPCA2;  
+
+merge A_PEZO01.neurobasisPCA2 work.pcastatus;  
+
+by pp0010;  
+
+run;  
+
+ 
+
+data A_PEZO01.neurobasisPCA2;  
+
+set A_PEZO01.neurobasisPCA2; 
+
+if indpallstat=. then indpallstat=0;  
+
+run; 
